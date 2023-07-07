@@ -16,6 +16,7 @@ func init() {
 	fmt.Println("Version: ", version)
 	config.Init()
 }
+
 func main() {
 	fmt.Println("http service starting... listen:", config.AppConfig.Tcp)
 	if err := routers.Init().Run(config.AppConfig.Tcp); err != nil {
