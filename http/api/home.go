@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go/token"
+	"github.com/eoscanada/eos-go"
 	addressFil "github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types/ethtypes"
 	"github.com/gin-gonic/gin"
