@@ -179,7 +179,7 @@ func EosDecodeHex(c *gin.Context) {
 	var dataDecode = struct {
 		From     string `json:"from"`
 		To       string `json:"to"`
-		Quantity string `json:"symbol"`
+		Quantity string `json:"quantity"`
 		Memo     string `json:"memo"`
 	}{
 		From:     string(sd.From),
