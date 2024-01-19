@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/token"
@@ -150,7 +149,7 @@ func FilSendAddress(c *gin.Context)  {
 }
 
 func EosDecodeHex(c *gin.Context) {
-	ret := make(map[string]string)
+	ret := make(map[string]interface{})
 	ret["code"] = "error"
 
 	defer func() {
@@ -188,12 +187,7 @@ func EosDecodeHex(c *gin.Context) {
 		Quantity: sd.Quantity.String(),
 		Memo:     sd.Memo,
 	}
-	byteData, err := json.Marshal(dataDecode)
-	if err != nil {
-		ret["msg"] = fmt.Sprintf("eos marshal data error, err: %+v", err)
-		return
-	}
 
 	ret["code"] = "success"
-	ret["data"] = string(byteData)
+	ret["data"] = dataDecode
 }
