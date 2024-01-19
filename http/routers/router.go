@@ -27,6 +27,7 @@ func initRouter(router *gin.Engine) {
 	router.GET("/", api.Index)
 	router.GET("/filAddress", api.FilAddress)
 	router.GET("/send/filAddress", api.FilSendAddress)
+	router.GET("/eosDecodeHex", api.EosDecodeHex)
 }
 
 func ping(c *gin.Context) {

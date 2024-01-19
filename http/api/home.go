@@ -2,12 +2,16 @@ package api
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/eoscanada/eos-go/token"
+	"github.com/eoscanada/eos-go"
 	addressFil "github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types/ethtypes"
 	"github.com/gin-gonic/gin"
 	"github.com/zhp12543/fil-address/abiencode"
 	"github.com/zhp12543/fil-address/config"
+	"math/big"
 	"strings"
 )
 
@@ -144,4 +148,56 @@ func FilSendAddress(c *gin.Context)  {
 	ret["code"] = "success"
 	ret["eth_address"] = ethAddr
 	ret["fil_address"] = filAddr
+}
+
+func EosDecodeHex(c *gin.Context)  {
+	ret := make(map[string]string)
+	ret["code"] = "error"
+
+	defer func() {
+		c.JSON(200, ret)
+	}()
+
+	data, _ := c.GetQuery("data")
+	data = strings.TrimSpace(data)
+	if strings.EqualFold(data, "") {
+		ret["msg"] = "eos decode data error, param data is empty"
+		return
+	}
+
+	strData, err := hex.DecodeString(data)
+	if err != nil {
+		ret["msg"] = fmt.Sprintf("eos data hex decode error, err: %+v", err)
+		return
+	}
+	decoder := eos.NewDecoder(strData)
+	var sd token.Transfer
+
+	err = decoder.Decode(&sd)
+	if err != nil {
+		ret["msg"] = fmt.Sprintf("eos decode data error, err: %+v", err)
+		return
+	}
+	var dataDecode = struct {
+		From   string `json:"from"`
+		To     string `json:"to"`
+		Symbol string `json:"symbol"`
+		Amount string `json:"amount"`
+		Memo   string `json:"memo"`
+	}{
+		From: string(sd.From),
+		To: string(sd.To),
+		Symbol: sd.Quantity.Symbol.Symbol,
+		Amount: big.NewInt(int64(sd.Quantity.Amount)).String(),
+		Memo: sd.Memo,
+	}
+	byteData, err := json.Marshal(dataDecode)
+	if err != nil {
+		ret["msg"] = fmt.Sprintf("eos marshal data error, err: %+v", err)
+		return
+	}
+	hexData := hex.EncodeToString(byteData)
+
+	ret["code"] = "success"
+	ret["data"] = hexData
 }
