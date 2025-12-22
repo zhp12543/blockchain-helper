@@ -7,7 +7,7 @@
 - **Filecoin 地址转换**：支持 Filecoin 地址（f0/f4）与以太坊地址（0x）之间的相互转换
 - **ABI 编解码**：支持 Filecoin Send 方法的 ABI 数据编解码
 - **EOS 数据解码**：支持 EOS 区块链交易数据的十六进制解码
-- **区块链浏览器爬虫**：集成 OKLink 区块浏览器数据爬取功能
+- **区块链浏览器爬虫**：集成 OKLink 区块浏览器数据爬取功能，支持智能缓存
 
 ## 技术栈
 
@@ -195,6 +195,73 @@ curl "http://127.0.0.1:8988/eosDecodeHex?data=<hex_string>"
 }
 ```
 
+### 6. OKLink 交易数据爬取（带缓存）
+
+```
+GET/POST /oklink/crawl
+```
+
+**参数**：
+- `symbol`: 区块链符号（必填，如 eth, btc, fil 等）
+- `txids`: 交易哈希列表（必填，多个用逗号分隔）
+- `proxy`: 代理服务器地址（可选，如 socks5://127.0.0.1:1080）
+- `nocache`: 跳过缓存（可选，设置为 "true" 强制重新抓取）
+
+**缓存机制**：
+- 相同的 symbol + txid 组合会自动缓存 24 小时
+- 缓存命中时直接返回缓存数据，无需重新抓取
+- 每小时自动清理过期缓存
+- 返回结果包含缓存统计信息
+
+**示例请求**：
+```bash
+# 单个交易
+curl "http://127.0.0.1:8988/oklink/crawl?symbol=eth&txids=0x123..."
+
+# 多个交易（逗号分隔）
+curl "http://127.0.0.1:8988/oklink/crawl?symbol=eth&txids=0x123...,0x456..."
+
+# 使用代理
+curl "http://127.0.0.1:8988/oklink/crawl?symbol=fil&txids=0x123...&proxy=socks5://127.0.0.1:1080"
+
+# 跳过缓存，强制重新抓取
+curl "http://127.0.0.1:8988/oklink/crawl?symbol=eth&txids=0x123...&nocache=true"
+
+# POST 请求
+curl -X POST "http://127.0.0.1:8988/oklink/crawl?symbol=eth&txids=0x123..."
+```
+
+**响应**：
+```json
+{
+  "code": "success",
+  "count": 2,
+  "cache_hits": 1,
+  "cache_misses": 1,
+  "data": [
+    {
+      "Hash": "0x123...",
+      "Status": "Success",
+      "Block": "12345678",
+      "Time": "2025-12-22 10:00:00",
+      "Sender": "0xabc...",
+      "Receiver": "0xdef...",
+      "Amount": "1.5",
+      "Token": "ETH",
+      "Fee": "0.002",
+      "Transfers": []
+    }
+  ]
+}
+```
+
+**响应字段说明**：
+- `code`: 状态码（success / partial_success / error）
+- `count`: 返回的交易数量
+- `cache_hits`: 缓存命中次数
+- `cache_misses`: 缓存未命中次数
+- `data`: 交易详情数组
+
 ## 核心模块说明
 
 ### ABI 编解码（abiencode）
@@ -212,6 +279,12 @@ curl "http://127.0.0.1:8988/eosDecodeHex?data=<hex_string>"
 - 交易状态、区块高度、时间戳
 - 发送方、接收方地址
 - 转账金额和手续费信息
+- **智能缓存**：
+  - 自动缓存查询结果，24 小时有效期
+  - 缓存键：symbol + txid 组合（大小写不敏感）
+  - 每小时自动清理过期缓存
+  - 并发安全：使用读写锁保证线程安全
+  - 支持强制刷新（nocache 参数）
 
 ## 错误处理
 
