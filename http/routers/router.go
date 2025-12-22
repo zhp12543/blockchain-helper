@@ -28,6 +28,10 @@ func initRouter(router *gin.Engine) {
 	router.GET("/filAddress", api.FilAddress)
 	router.GET("/send/filAddress", api.FilSendAddress)
 	router.GET("/eosDecodeHex", api.EosDecodeHex)
+	
+	// OKLink 爬虫接口，支持 GET 和 POST
+	router.GET("/oklink/crawl", api.OklinkCrawl)
+	router.POST("/oklink/crawl", api.OklinkCrawl)
 }
 
 func ping(c *gin.Context) {

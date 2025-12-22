@@ -9,5 +9,5 @@ func TestOkLink(t *testing.T)  {
 		"0x2b0971ed39c91104c8b9497751add26a9d0929d4951e390f936b811ce3c3069f",
 		"0x2d96c8adae86e668fd7ce19d721a62e680fe5c12d55fc541e7f7bc8f8e648015",
 	}
-	crawlOklink("bsc", txid)
+	CrawlOklink("bsc", txid, "socks5://127.0.0.1:51837")
 }
